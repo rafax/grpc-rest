@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package grpc_rest;
+
+// The greeter service definition.
+service Authenticator {
+  // Sends a greeting
+  rpc LogIn (LogInRequest) returns (AuthResponse) {}
+  rpc Validate (CredentialsRequest) returns (AuthResponse) {}
+}
+
+// The request message containing the user's name.
+message LogInRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message CredentialsRequest{
+	string token = 1;
+}
+
+// The response message containing the greetings
+message AuthResponse {
+  string token = 1;
+  string validUntil = 2;
+}
