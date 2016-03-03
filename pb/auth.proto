@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package grpc_rest;
+package pb;
 
 // The greeter service definition.
 service Authenticator {

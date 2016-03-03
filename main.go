@@ -14,7 +14,7 @@
 
 package main
 
-import "github.com/rafax/grpc_rest/cmd"
+import "github.com/rafax/grpc-rest/cmd"
 
 func main() {
 	cmd.Execute()

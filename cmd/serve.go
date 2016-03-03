@@ -26,7 +26,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "github.com/rafax/grpc_rest/pb"
+	pb "github.com/rafax/grpc-rest/pb"
 	"github.com/spf13/cobra"
 )
 
@@ -34,7 +34,8 @@ const port = ":65432"
 
 type server struct{}
 
-func (s *server) LogIn(context.Context, *pb.LogInRequest) (*pb.AuthResponse, error) {
+func (s *server) LogIn(c context.Context, lir *pb.LogInRequest) (*pb.AuthResponse, error) {
+	//fmt.Println("Logged in ", lir)
 	return &pb.AuthResponse{Token: strconv.Itoa(rand.Int()), ValidUntil: time.Now().String()}, nil
 }
 
@@ -60,22 +61,11 @@ to quickly create a Cobra application.`,
 		}
 		s := grpc.NewServer()
 		pb.RegisterAuthenticatorServer(s, &server{})
-		fmt.Println("RUnning on ", port)
+		fmt.Println("Running on ", port)
 		s.Serve(lis)
 	},
 }
 
 func init() {
 	RootCmd.AddCommand(serveCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serveCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
-
 }
