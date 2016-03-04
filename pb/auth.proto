@@ -2,10 +2,17 @@ syntax = "proto3";
 
 package pb;
 
+import "google/api/annotations.proto";
+
 // The greeter service definition.
 service Authenticator {
   // Sends a greeting
-  rpc LogIn (LogInRequest) returns (AuthResponse) {}
+  rpc LogIn (LogInRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+        post: "/v1/login"
+        body: "*"
+    };
+  }
   rpc Validate (CredentialsRequest) returns (AuthResponse) {}
 }
 
