@@ -2,13 +2,10 @@ package cmd
 
 import (
 	"log"
-	"os"
 
 	pb "github.com/rafax/grpc-rest/pb"
 
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-
+	c "github.com/rafax/grpc-rest/client"
 	"github.com/spf13/cobra"
 )
 
@@ -23,21 +20,12 @@ var clientCmd = &cobra.Command{
 	Short: "A brief description of your command",
 	Long:  ``,
 	Run: func(cmd *cobra.Command, args []string) {
-		conn, err := grpc.Dial(address, grpc.WithInsecure())
-		if err != nil {
-			log.Fatalf("did not connect: %v", err)
-		}
-		defer conn.Close()
-		c := pb.NewAuthenticatorClient(conn)
-
-		// Contact the server and print out its response.
+		client := c.GrpcClient{}
+		client.Init(address)
 		name := defaultName
-		if len(os.Args) > 1 {
-			name = os.Args[1]
-		}
-		r, err := c.LogIn(context.Background(), &pb.LogInRequest{Username: name, Password: "secret"})
+		r, err := client.LogIn(&pb.LogInRequest{Username: name, Password: "secret"})
 		if err != nil {
-			log.Fatalf("could not greet: %v", err)
+			log.Fatalf("could not log in: %v", err)
 		}
 		log.Printf("Logged in: %s", r)
 	},
