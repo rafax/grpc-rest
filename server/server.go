@@ -30,7 +30,6 @@ func (s AuthServer) LogIn(c context.Context, lir *pb.LogInRequest) (*pb.AuthResp
 	s.tokensMutex.Lock()
 	s.tokens[t] = validUntil
 	s.tokensMutex.Unlock()
-	time.Sleep(time.Duration(10) * time.Millisecond)
 	return &pb.AuthResponse{Token: t, ValidUntil: validUntil.String()}, nil
 }
 
@@ -39,7 +38,6 @@ func (s AuthServer) Validate(ctx context.Context, in *pb.CredentialsRequest) (*p
 	s.tokensMutex.RLock()
 	validUntil, ok := s.tokens[in.Token]
 	s.tokensMutex.RUnlock()
-	time.Sleep(time.Duration(10) * time.Millisecond)
 	if ok {
 		if time.Now().After(validUntil) {
 			s.tokensMutex.Lock()
