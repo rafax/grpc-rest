@@ -3,14 +3,11 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 	"sync"
 	"time"
 
+	"github.com/rafax/grpc-rest/client"
 	pb "github.com/rafax/grpc-rest/pb"
-
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 
 	"github.com/spf13/cobra"
 )
@@ -28,40 +25,54 @@ to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		const (
-			address     = "localhost:65432"
-			defaultName = "world"
+			grpcEndpoint = "localhost:65432"
+			restEndpoint = "http://localhost:8080"
+			defaultName  = "world"
+			requests     = int64(1000)
+			workers      = 1
+			name         = defaultName
 		)
 
-		requests := int64(10000)
-		// TODO: Work your own magic here
-		// Set up a connection to the server.
-		conn, err := grpc.Dial(address, grpc.WithInsecure())
-		if err != nil {
-			log.Fatalf("did not connect: %v", err)
-		}
-		defer conn.Close()
-		c := pb.NewAuthenticatorClient(conn)
-		name := defaultName
-		if len(os.Args) > 1 {
-			name = os.Args[1]
-		}
+		jobs := make(chan pb.LogInRequest)
+		c := client.NewGrpcClient(grpcEndpoint)
+		//c := client.NewRestClient(restEndpoint)
 		var wg sync.WaitGroup
+
+		for w := 0; w <= workers; w++ {
+			go func() {
+				for lr := range jobs {
+					defer wg.Done()
+					r, err := c.LogIn(&lr)
+					if err != nil {
+						log.Fatalf("could not log in: %v", err)
+						return
+					}
+					_, err = c.Validate(&pb.CredentialsRequest{Token: r.Token})
+					if err != nil {
+						log.Fatalf("could not validate token: %v", err)
+					}
+				}
+			}()
+		}
+
 		start := time.Now()
+
 		for i := int64(0); i < requests; i++ {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				r, err := c.LogIn(context.Background(), &pb.LogInRequest{Username: name, Password: "secret"})
+				r, err := c.LogIn(&pb.LogInRequest{Username: name, Password: "secret"})
 				if err != nil {
 					log.Fatalf("could not log in: %v", err)
 					return
 				}
-				_, err = c.Validate(context.Background(), &pb.CredentialsRequest{Token: r.Token})
+				_, err = c.Validate(&pb.CredentialsRequest{Token: r.Token})
 				if err != nil {
 					log.Fatalf("could not validate token: %v", err)
 				}
 			}()
 		}
+		close(jobs)
 		wg.Wait()
 		elapsed := time.Since(start)
 		fmt.Printf("Executed %d requests in %s, %f ms/op", requests*2, elapsed, float64(elapsed.Nanoseconds())/float64(2*requests*1000000))
