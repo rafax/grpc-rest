@@ -3,7 +3,6 @@ package client
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -68,7 +67,6 @@ func (c RestClient) LogIn(r *pb.LogInRequest) (*pb.AuthResponse, error) {
 	defer resp.Body.Close()
 	var ar pb.AuthResponse
 	json.NewDecoder(resp.Body).Decode(&ar)
-	fmt.Println(resp.Body)
 	return &ar, nil
 }
 
