@@ -13,7 +13,12 @@ service Authenticator {
         body: "*"
     };
   }
-  rpc Validate (CredentialsRequest) returns (AuthResponse) {}
+  rpc Validate (CredentialsRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+          post: "/v1/validate"
+          body: "*"
+    };
+  }
 }
 
 // The request message containing the user's name.
