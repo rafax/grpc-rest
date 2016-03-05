@@ -4,4 +4,7 @@ go:
   - 1.6
   - tip
 
+install: go get ./...
+
 script: go test -v ./...
+
