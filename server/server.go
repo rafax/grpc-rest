@@ -9,6 +9,8 @@ import (
 
 	"github.com/rafax/grpc-rest/pb"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 // AuthServer stores tokens issued for users
@@ -35,6 +37,7 @@ func (s AuthServer) LogIn(c context.Context, lir *pb.LogInRequest) (*pb.AuthResp
 
 // Validate checks if token is valid and was issued by this server
 func (s AuthServer) Validate(ctx context.Context, in *pb.CredentialsRequest) (*pb.AuthResponse, error) {
+	start := time.Now()
 	s.tokensMutex.RLock()
 	validUntil, ok := s.tokens[in.Token]
 	s.tokensMutex.RUnlock()
@@ -47,5 +50,6 @@ func (s AuthServer) Validate(ctx context.Context, in *pb.CredentialsRequest) (*p
 		}
 		return &pb.AuthResponse{Token: in.Token, ValidUntil: validUntil.String()}, nil
 	}
+	grpc.SendHeader(ctx, metadata.Pairs("X-Duration", time.Since(start).String()))
 	return nil, errors.New("Invalid token")
 }
